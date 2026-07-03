@@ -35,7 +35,7 @@ class RegisterController extends Controller
                                    'unique:student_profiles,college_email',
                                    'unique:alumni_profiles,college_email'],
             'course_id'        => ['required', 'exists:courses,id'],
-            'graduation_year'  => ['required', 'integer', 'min:2000', 'max:' . date('Y')],
+            'graduation_year'  => ['required', 'integer', 'min:2000', 'max:' . ($request->input('type') === 'alumni' ? date('Y') : date('Y') + 5)],
             'password'         => ['required', 'confirmed', Password::min(6)],
             // Alumni-only optional professional fields
             'company'          => ['nullable', 'string', 'max:150'],
@@ -49,6 +49,9 @@ class RegisterController extends Controller
             'college_email.ends_with'  => 'College email must end with @inderamahkota.kpm.edu.my.',
             'college_email.unique'     => 'This college email is already registered.',
             'phone.regex'              => 'Must be a valid Malaysian phone number starting with 01.',
+            'graduation_year.max'      => $request->input('type') === 'alumni'
+                ? 'Alumni graduation year cannot be in the future. Please enter the year you actually graduated.'
+                : 'Graduation year cannot be more than 5 years ahead of the current year.',
         ]);
 
         DB::transaction(function () use ($validated, $request) {

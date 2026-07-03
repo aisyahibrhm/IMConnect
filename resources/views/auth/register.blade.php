@@ -1,6 +1,22 @@
 @extends('layouts.app')
 @section('title', 'Register — IMConnect')
 
+@push('styles')
+<style>
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url('{{ asset("images/kpmimadmin.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.38) saturate(0.8);
+        z-index: -1;
+    }
+    body { background: transparent !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="auth-page">
 <div class="auth-card" style="max-width:560px;">
@@ -106,7 +122,8 @@
                     <label for="graduation_year">Graduation year</label>
                     <input type="number" id="graduation_year" name="graduation_year"
                            value="{{ old('graduation_year') }}"
-                           min="2000" max="{{ date('Y') + 5 }}" placeholder="{{ date('Y') }}">
+                           min="2000" max="{{ date('Y') + 5 }}" 
+                           placeholder="{{ date('Y') }}">
                     <div id="yearError" class="error-message"><i class="fas fa-exclamation-circle" style="font-size:11px;"></i><span></span></div>
                 </div>
             </div>
@@ -184,6 +201,7 @@ function setType(type) {
     const af = document.getElementById('alumniFields');
     const an = document.getElementById('alumniNotice');
     const sl = document.getElementById('submitLabel');
+    const gradYear = document.getElementById('graduation_year');
 
     const activeStyle  = 'border:2px solid var(--crimson); background:var(--crimson); color:#fff;';
     const inactiveStyle= 'border:2px solid var(--border-strong); background:transparent; color:var(--text-secondary);';
@@ -194,12 +212,16 @@ function setType(type) {
         af.style.display = 'block';
         an.style.display = 'flex';
         sl.textContent   = 'Submit Alumni Registration';
+        gradYear.max = new Date().getFullYear(); // Alumni cannot have future graduation year 
+        gradYear.placeholder = 'e.g.' + (new Date().getFullYear() -1) ;
     } else {
         ts.style.cssText += activeStyle;
         ta.style.cssText += inactiveStyle;
         af.style.display = 'none';
         an.style.display = 'none';
         sl.textContent   = 'Create Student Account';
+        gradYear.max = new Date().getFullYear() + 5; // Students can have graduation year up to 5 years in the future
+        gradYear.placeholder = 'e.g.' + (new Date().getFullYear() + 5);
     }
 }
 
@@ -229,9 +251,19 @@ function validateRegister() {
         showErr('collegeEmailError', 'Must end with @inderamahkota.kpm.edu.my.'); valid = false;
     }
     if (!phoneRx.test(phone)) { showErr('phoneError', 'Must start with 01, 10–11 digits.'); valid = false; }
-    if (!year || year < 2000 || year > new Date().getFullYear() + 5 ) {
-        showErr('yearError', 'Enter a valid graduation year (up to ' + (new Date().getFullYear() + 5) + ').'); valid = false;
+
+    const currentYear = new Date().getFullYear();
+    const maxYear = currentType === 'alumni' ? currentYear : currentYear + 5;
+    const minYear = 2000;
+
+    if (!year || year < minYear || year > maxYear) {
+        const msg = currentType === 'alumni'
+            ? 'Alumni graduation year cannot be in the future. Please enter the year you actually graduated.'
+            : 'Enter a valid graduation year (up to ' + maxYear + ').';
+        showErr('yearError', msg);
+        valid = false;
     }
+
     if (pass.length < 6) { showErr('passwordError', 'Password must be at least 6 characters.'); valid = false; }
     if (pass !== confirm) { showErr('confirmError', 'Passwords do not match.'); valid = false; }
     return valid;

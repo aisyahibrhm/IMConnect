@@ -1,6 +1,22 @@
 @extends('layouts.app')
 @section('title', 'Login — IMConnect')
 
+@push('styles')
+<style>
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url('{{ asset("images/kpmimadmin.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.38) saturate(0.8);
+        z-index: -1;
+    }
+    body { background: transparent !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="auth-page">
 <div class="auth-card">
